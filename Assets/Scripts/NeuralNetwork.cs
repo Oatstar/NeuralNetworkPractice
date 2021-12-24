@@ -5,14 +5,25 @@ using UnityEngine;
 
 public class NeuralNetwork : IComparable<NeuralNetwork>
 {
+	CharacterSpawner charSpawner;
 	private int[] layers;
 	private float[][] neurons;
 	private float[][][] weights;
+	public int identifier;
+	public Color characterColor;
 
 	private float fitness;
 
 	public NeuralNetwork(int[] layers)
 	{
+		charSpawner = GameObject.Find("MANAGERS").GetComponent<CharacterSpawner>();
+		characterColor = new Color(UnityEngine.Random.Range(0.15f, 0.85f), UnityEngine.Random.Range(0.15f, 0.85f), UnityEngine.Random.Range(0.15f, 0.85f), 1.0f);
+
+		do
+		{
+			identifier = UnityEngine.Random.Range(10000, 99999);
+		} while (charSpawner.allIdentifiers.Contains(identifier));
+
 		this.layers = new int[layers.Length];
 		for (int i = 0; i < layers.Length; i++)
 		{
@@ -24,18 +35,32 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 		InitWeights(); //Initialize weights
 	}
 
-	//public NeuralNetwork(NeuralNetwork copyNetwork)
-	//{
-	//	this.layers = new int[copyNetwork.layers.Length];
-	//	for (int i = 0; i < copyNetwork.layers.Length; i++)
-	//	{
-	//		this.layers[i] = copyNetwork.layers[i];
-	//	}
+	/// <summary>
+	/// Deep copy constructor
+	/// </summary>
+	/// <param name="copyNetwork"></param>
+	public NeuralNetwork(NeuralNetwork copyNetwork)
+	{
+		characterColor = copyNetwork.characterColor;
 
-	//	//Generate arrays and matrixes
-	//	InitNeurons();
-	//	InitWeights();
-	//}
+		identifier = copyNetwork.identifier;
+		Debug.Log("Identifier: " + identifier);
+		this.layers = new int[copyNetwork.layers.Length];
+		for (int i = 0; i < copyNetwork.layers.Length; i++)
+		{
+			this.layers[i] = copyNetwork.layers[i];
+		}
+
+		//Generate arrays and matrixes
+		InitNeurons();
+		InitWeights();
+		CopyWeights(copyNetwork.weights);
+	}
+
+	public int GetIdentifier()
+	{
+		return identifier;
+	}
 
 	private void CopyWeights(float[][][] copyWeights)
 	{
@@ -120,8 +145,9 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 	}
 
 	//Mutate networks weights based on random chance
-	public void Mutate()
+	public int Mutate()
 	{
+		int mutateCount = 0;
 		//Iterate through all the layers in the weight matrix
 		for (int i = 0; i < weights.Length; i++)
 		{
@@ -138,18 +164,30 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 
 					if(randomNumber <= 2f)
 					{
+						mutateCount++;
+						Debug.Log("Mutate 1");
+						RerollIndentifier();
+
 						//if 1
 						//flip sign of weight
 						weight *= -1f;
 					}
 					else if (randomNumber <= 4f)
 					{
+						mutateCount++;
+						Debug.Log("Mutate 2");
+						RerollIndentifier();
+
 						//if 1
 						//Set a random number between -1 and 1
 						weight = UnityEngine.Random.Range(-0.5f,0.5f);
 					}
 					else if (randomNumber <= 6f)
 					{
+						mutateCount++;
+						Debug.Log("Mutate 3");
+						RerollIndentifier();
+
 						//if 1
 						//randomly increase weight by 0% to 100%
 						float factor = UnityEngine.Random.Range(0f, 1f) + 1f;
@@ -157,6 +195,9 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 					}
 					else if (randomNumber <= 8f)
 					{
+						mutateCount++;
+						Debug.Log("Mutate 4");
+						RerollIndentifier();
 						//if 1
 						//randomly decrease by 0% to 100%
 						float factor = UnityEngine.Random.Range(0f, 1f);
@@ -167,6 +208,12 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 				}
 			}
 		}
+		return mutateCount;
+	}
+
+	void RerollIndentifier()
+	{
+		identifier = UnityEngine.Random.Range(10000, 99999);
 	}
 
 	public void AddFitness(float fit)

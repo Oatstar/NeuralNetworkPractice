@@ -72,7 +72,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 15
   m_Sprite: {fileID: 21300000, guid: 3eda98b1f01f01c498e043b233da2f8c, type: 3}
-  m_Color: {r: 1, g: 0.66703844, b: 0.3443396, a: 1}
+  m_Color: {r: 1, g: 0.6, b: 0.3, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -94,6 +94,7 @@ GameObject:
   - component: {fileID: 4086133127655104879}
   - component: {fileID: 4086133127655104873}
   - component: {fileID: 4086133127655104872}
+  - component: {fileID: 2057695874503749631}
   m_Layer: 6
   m_Name: Character
   m_TagString: Character
@@ -140,7 +141,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 100
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 0
@@ -148,7 +149,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!61 &4086133127655104872
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -175,3 +176,15 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.9439888, y: 0.9487212}
   m_EdgeRadius: 0
+--- !u!114 &2057695874503749631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4086133127655104876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 703fcbf1a35d5a147a91ae9f79d138ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

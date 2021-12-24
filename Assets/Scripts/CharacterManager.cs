@@ -10,6 +10,8 @@ public class CharacterManager : MonoBehaviour
 	GenerationManager genManager;
 	float[] output;
 
+	LayerMask characterLayer;
+
 	Rigidbody2D rb;
 
 	private void Awake()
@@ -26,54 +28,86 @@ public class CharacterManager : MonoBehaviour
 
 	public void LoadParentsNeuralNetwork(NeuralNetwork parentNetwork)
 	{
-		neuralNetwork = parentNetwork;
+		neuralNetwork = new NeuralNetwork(parentNetwork);
+
+		//neuralNetwork = parentNetwork;
+		int mutateCount = neuralNetwork.Mutate();
+		if (mutateCount != 0)
+			RefreshColorOnMutate();
+	}
+
+	void RefreshColorOnMutate()
+	{
+		Color currentColor = neuralNetwork.characterColor;
+		neuralNetwork.characterColor = new Color(currentColor.r+UnityEngine.Random.Range(-0.25f, 0.25f), currentColor.g+ UnityEngine.Random.Range(-0.25f, 0.25f), currentColor.b+ UnityEngine.Random.Range(-0.25f, 0.25f), 1.0f);
+		this.transform.GetComponentInChildren<SpriteRenderer>().color = neuralNetwork.characterColor;
+	}
+
+	public int GetIdentifier()
+	{
+		return neuralNetwork.identifier;
 	}
 
 	private void Start()
 	{
-		StartCoroutine(RefreshMovement());
+		//StartCoroutine(RefreshMovement());
 	}
 
 	void InitializeNeuralNetwork()
 	{
-		int[] layers = new int[4] {4, 5, 5, 4 };
-
+		int[] layers = new int[4] {3, 6, 6, 3 };
 		neuralNetwork = new NeuralNetwork(layers);
 
-		
+		this.transform.GetComponentInChildren<SpriteRenderer>().color= neuralNetwork.characterColor;
 	}
 
 	//Get inputs as distances from edges
 	float[] GetInputs()
 	{
-		//Directions 0 = top, 1 = right, 2 = bot, 3 = left
-		float[] inputs = new float[4];
+		int inputAmount = 3;
+		//Directions 0 = top, 1 = right, 2 = closeChars, 3 = timeticks
+		float[] inputs = new float[inputAmount];
 		Vector2 characterPos = this.gameObject.transform.position;
 
-		//Iterate directions and compare only x or y depending on the edge. ie. x = left and right. y = top and bot
-		for (int i = 0; i < 4; i++)
-		{
-			if(i == 0)
-				inputs[i] = worldManager.GetEdgePosition(i).y - characterPos.y;
-			else
-				inputs[i] = worldManager.GetEdgePosition(i).x - characterPos.x;
-		}
+		float input0raw = worldManager.GetEdgePosition(0).y - characterPos.y;
+		float input1raw = worldManager.GetEdgePosition(1).x - characterPos.x;
+		float input2raw = GetCloseCharactersCount();
 
-		inputs[2] = genManager.GetCurrentTicks();
-		inputs[3] = worldManager.GetEdgePosition(3).x - characterPos.x;
+		//inputs[3] = genManager.GetCurrentTicks();
+		inputs[0] = Scale(input0raw, 0, 200, -1, 1);
+		inputs[1] = Scale(input1raw, 0, 200, -1, 1);
+		inputs[2] = Scale(input2raw, 0, 25, -1, 1);
 
+		//Debug.Log("Input 0: " + inputs[0]);
+		//Debug.Log("Input 1: " + inputs[1]);
+		//Debug.Log("Input 2: " + inputs[2]);
 		return inputs;
 	}
 
-	int GetCloseCharactersCount()
+
+	public float Scale(float OldValue, float OldMin, float OldMax, float NewMin, float NewMax)
 	{
-		Collider2D[] closestChars = Physics2D.OverlapCircleAll(this.transform.position, 10);
-		return 0;
+
+		float OldRange = (OldMax - OldMin);
+		float NewRange = (NewMax - NewMin);
+		float NewValue = (((OldValue - OldMin) * NewRange) / OldRange) + NewMin;
+
+		return (NewValue);
 	}
 
-	IEnumerator RefreshMovement()
+
+	int GetCloseCharactersCount()
 	{
-		yield return new WaitForSeconds(0.05f);
+		Collider2D[] closestChars = Physics2D.OverlapCircleAll(this.transform.position, 20);
+		//Debug.Log("charcount close: " + closestChars.Length);
+		return closestChars.Length;
+	}
+
+	public IEnumerator RefreshMovement()
+	{
+		//Debug.Log("Refresh movement");
+		//yield return new WaitForSeconds(genManager.GetTickTime());
+		yield return new WaitForSeconds(genManager.GetTickTime());
 
 		//Get inputs and outputs
 		float[] distancesToEdges = GetInputs();
@@ -83,17 +117,15 @@ public class CharacterManager : MonoBehaviour
 		//Debug.Log("Output[2]: " + output[2]);
 		//Debug.Log("erotus: " + (Mathf.Abs(output[0]) - Mathf.Abs(output[1])));
 
-		float xMovement = 0;
-		float yMovement = 0;
+		float xMovement = output[0];
+		float yMovement = output[1];
+		float dontMoveChance = output[2];
 
-		xMovement = output[0];
-		yMovement = output[1];
-
-		float absDifferennce = Mathf.Abs(xMovement) - Mathf.Abs(yMovement);
-
-		if (Mathf.Abs(absDifferennce) < 0.01f)
+		//float absDifferennce = Mathf.Abs(xMovement) - Mathf.Abs(yMovement);
+		if (Mathf.Abs(dontMoveChance) < 0.001f)
 		{
-			MoveRandomly();
+			//Debug.Log("Output: " + Mathf.Abs(dontMoveChance));
+			DontMove();
 		}
 		else if (Mathf.Abs(xMovement) > Mathf.Abs(yMovement))
 		{
@@ -110,10 +142,16 @@ public class CharacterManager : MonoBehaviour
 				MoveDown();
 		}
 
-		if (UnityEngine.Random.Range(0, 1) < output[3])
-			MoveAgain();
+		//if (UnityEngine.Random.Range(0, 1) < output[3])
+		//	MoveAgain();
 
-		StartCoroutine(RefreshMovement());
+		if(genManager.generationOnGoing)
+			StartCoroutine(RefreshMovement());
+	}
+
+	void DontMove()
+	{
+
 	}
 
 	void MoveRandomly()
@@ -135,6 +173,12 @@ public class CharacterManager : MonoBehaviour
 				break;
 
 		}
+	}
+
+	bool CharacterInFront()
+	{
+		//Physics2D.Raycast(this.transform.position, Vector2.down, inf)
+		return false;
 	}
 
 	void MoveUp()
@@ -180,7 +224,7 @@ public class CharacterManager : MonoBehaviour
 		Gizmos.color = Color.red;
 		//Check that it is being run in Play Mode, so it doesn't try to draw this in Editor mode
 		//Draw a cube where the OverlapBox is (positioned where your GameObject is as well as a size)
-		Gizmos.DrawWireSphere(this.transform.position, 10);
+		Gizmos.DrawWireSphere(this.transform.position, 20);
 	}
 
 }
