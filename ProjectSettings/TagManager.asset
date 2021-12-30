@@ -8,6 +8,7 @@ TagManager:
   - DeathArea
   - Edge
   - Floor
+  - GraphIcon
   layers:
   - Default
   - TransparentFX
@@ -16,8 +17,8 @@ TagManager:
   - Water
   - UI
   - Characters
-  - 
-  - 
+  - Edges
+  - Obstacles
   - 
   - 
   - 

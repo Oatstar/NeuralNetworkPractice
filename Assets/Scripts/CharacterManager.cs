@@ -10,7 +10,9 @@ public class CharacterManager : MonoBehaviour
 	GenerationManager genManager;
 	float[] output;
 
-	LayerMask characterLayer;
+	public LayerMask characterLayer;
+	public LayerMask wallLayer;
+	public LayerMask obstacleLayer;
 
 	Rigidbody2D rb;
 
@@ -55,7 +57,7 @@ public class CharacterManager : MonoBehaviour
 
 	void InitializeNeuralNetwork()
 	{
-		int[] layers = new int[4] {3, 6, 6, 3 };
+		int[] layers = new int[4] {5, 10, 10, 3 };
 		neuralNetwork = new NeuralNetwork(layers);
 
 		this.transform.GetComponentInChildren<SpriteRenderer>().color= neuralNetwork.characterColor;
@@ -64,7 +66,7 @@ public class CharacterManager : MonoBehaviour
 	//Get inputs as distances from edges
 	float[] GetInputs()
 	{
-		int inputAmount = 3;
+		int inputAmount = 5;
 		//Directions 0 = top, 1 = right, 2 = closeChars, 3 = timeticks
 		float[] inputs = new float[inputAmount];
 		Vector2 characterPos = this.gameObject.transform.position;
@@ -72,11 +74,16 @@ public class CharacterManager : MonoBehaviour
 		float input0raw = worldManager.GetEdgePosition(0).y - characterPos.y;
 		float input1raw = worldManager.GetEdgePosition(1).x - characterPos.x;
 		float input2raw = GetCloseCharactersCount();
+		float input3raw = GetCloseWallsCount();
+		float input4raw = GetCloseObstaclesCount();
+		//Debug.Log("close obstacles: " + input4raw);
 
 		//inputs[3] = genManager.GetCurrentTicks();
-		inputs[0] = Scale(input0raw, 0, 200, -1, 1);
-		inputs[1] = Scale(input1raw, 0, 200, -1, 1);
-		inputs[2] = Scale(input2raw, 0, 25, -1, 1);
+		inputs[0] = Scale(input0raw, 0, 200, -1, 1); //Distance from Edge y
+		inputs[1] = Scale(input1raw, 0, 200, -1, 1); //Distance from Edge x
+		inputs[2] = Scale(input2raw, 0, 25, -1, 1);  //Amount of close proximity characters (0-25)
+		inputs[3] = Scale(input3raw, 0, 2, -1, 1); //Amount of walls close by
+		inputs[4] = Scale(input4raw, 0, 1, -1, 1); //Amount of obstacles close by
 
 		//Debug.Log("Input 0: " + inputs[0]);
 		//Debug.Log("Input 1: " + inputs[1]);
@@ -98,10 +105,25 @@ public class CharacterManager : MonoBehaviour
 
 	int GetCloseCharactersCount()
 	{
-		Collider2D[] closestChars = Physics2D.OverlapCircleAll(this.transform.position, 20);
+		Collider2D[] closestChars = Physics2D.OverlapCircleAll(this.transform.position, 20, characterLayer);
 		//Debug.Log("charcount close: " + closestChars.Length);
-		return closestChars.Length;
+		return Mathf.Clamp(closestChars.Length-1, 0, 100);
 	}
+
+	int GetCloseWallsCount()
+	{
+		Collider2D[] closeWalls = Physics2D.OverlapCircleAll(this.transform.position, 5, wallLayer);
+		//Debug.Log("wallCount close: " + closeWalls.Length);
+		return closeWalls.Length;
+	}
+
+	int GetCloseObstaclesCount()
+	{
+		Collider2D[] closeObstacles= Physics2D.OverlapCircleAll(this.transform.position, 2, obstacleLayer);
+		//Debug.Log("wallCount close: " + closeWalls.Length);
+		return closeObstacles.Length;
+	}
+
 
 	public IEnumerator RefreshMovement()
 	{

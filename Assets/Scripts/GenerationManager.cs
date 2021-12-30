@@ -21,6 +21,7 @@ public class GenerationManager : MonoBehaviour
 	[SerializeField] Button repopulateButton;
 	[SerializeField] Button simulateXButton;
 
+	public List<int> survivorCountByGeneration = new List<int> { };
 
 	[SerializeField] LayerMask charLayer;
 
@@ -193,12 +194,15 @@ public class GenerationManager : MonoBehaviour
 
 	void EndGenerationOnTimer()
 	{
+		
 		Time.timeScale = 0;
 		generationOnGoing = false;
 		RefreshButtonListeners();
 
 		SetTimer(startingTicks);
 		CountAllSurvivors();
+		survivorCountByGeneration.Add(survivors.Count);
+
 		survivorCountText.text = "Survivors: " + survivors.Count;
 		
 		Debug.Log("Generation ended on timer");
@@ -207,6 +211,7 @@ public class GenerationManager : MonoBehaviour
 	void CountAllSurvivors()
 	{
 		survivors = RayCastLivingArea();
+		//WindowGraph.instance.RefreshGraph(survivorCountByGeneration, 0, "Survivors");
 	}
 
 	void SetTimer(int value)

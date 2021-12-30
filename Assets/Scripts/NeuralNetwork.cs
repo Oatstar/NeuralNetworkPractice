@@ -44,7 +44,7 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 		characterColor = copyNetwork.characterColor;
 
 		identifier = copyNetwork.identifier;
-		Debug.Log("Identifier: " + identifier);
+		//Debug.Log("Identifier: " + identifier);
 		this.layers = new int[copyNetwork.layers.Length];
 		for (int i = 0; i < copyNetwork.layers.Length; i++)
 		{
@@ -165,7 +165,7 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 					if(randomNumber <= 2f)
 					{
 						mutateCount++;
-						Debug.Log("Mutate 1");
+						//Debug.Log("Mutate 1");
 						RerollIndentifier();
 
 						//if 1
@@ -175,7 +175,7 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 					else if (randomNumber <= 4f)
 					{
 						mutateCount++;
-						Debug.Log("Mutate 2");
+						//Debug.Log("Mutate 2");
 						RerollIndentifier();
 
 						//if 1
@@ -185,7 +185,7 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 					else if (randomNumber <= 6f)
 					{
 						mutateCount++;
-						Debug.Log("Mutate 3");
+						//Debug.Log("Mutate 3");
 						RerollIndentifier();
 
 						//if 1
@@ -196,7 +196,7 @@ public class NeuralNetwork : IComparable<NeuralNetwork>
 					else if (randomNumber <= 8f)
 					{
 						mutateCount++;
-						Debug.Log("Mutate 4");
+						//Debug.Log("Mutate 4");
 						RerollIndentifier();
 						//if 1
 						//randomly decrease by 0% to 100%
